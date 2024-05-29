@@ -9,13 +9,6 @@ from src.user_management_service.models import Base
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-#
-# section = config.config_ini_section
-# config.set_section_options(section, "DB_HOST", DB_HOST)
-# config.set_section_options(section, "DB_PORT", DB_PORT)
-# config.set_section_options(section, "DB_USER", DB_USER)
-# config.set_section_options(section, "DB_PASSWORD", DB_PASSWORD)
-# config.set_section_options(section, "DB_NAME", DB_NAME)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
