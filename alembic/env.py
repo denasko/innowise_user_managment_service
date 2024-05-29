@@ -3,8 +3,8 @@ from logging.config import fileConfig
 
 from alembic import context
 
-from src.user_management_service.database import engine as async_engine
-from src.user_management_service.models import Base
+from src.core.database.database import engine as async_engine
+from src.core.database.models.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

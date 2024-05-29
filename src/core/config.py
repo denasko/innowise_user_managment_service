@@ -7,14 +7,14 @@ class Settings(BaseSettings):
     DB_NAME: str = "db_user_management"
     DB_USER: str = "db_user_management"
     DB_PASSWORD: str = "db_user_management"
+
     POSTGRES_DB: str = "postgres"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
 
     @property
-    def DB_URL(self):
+    def DB_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
 
 settings = Settings()
-
