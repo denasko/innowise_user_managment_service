@@ -1,16 +1,21 @@
+import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
 from alembic import context
-import asyncio
-from sqlalchemy.ext.asyncio import AsyncEngine
-from src.user_management_service.database import settings, engine as async_engine
+
+from src.user_management_service.database import engine as async_engine
 from src.user_management_service.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+#
+# section = config.config_ini_section
+# config.set_section_options(section, "DB_HOST", DB_HOST)
+# config.set_section_options(section, "DB_PORT", DB_PORT)
+# config.set_section_options(section, "DB_USER", DB_USER)
+# config.set_section_options(section, "DB_PASSWORD", DB_PASSWORD)
+# config.set_section_options(section, "DB_NAME", DB_NAME)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -22,6 +27,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -70,19 +76,6 @@ async def run_migrations_online() -> None:
 
     async with async_engine.connect() as connection:
         await connection.run_sync(do_run_migrations)
-    # connectable = engine_from_config(
-    #     config.get_section(config.config_ini_section, {}),
-    #     prefix="sqlalchemy.",
-    #     poolclass=pool.NullPool,
-    # )
-    #
-    # with connectable.connect() as connection:
-    #     context.configure(
-    #         connection=connection, target_metadata=target_metadata
-    #     )
-    #
-    #     with context.begin_transaction():
-    #         context.run_migrations()
 
 
 if context.is_offline_mode():
