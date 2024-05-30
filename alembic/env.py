@@ -4,7 +4,6 @@ from logging.config import fileConfig
 from alembic import context
 from src.core.config import settings
 from src.core.database.database import engine as async_engine
-from src.core.database.models.user import User # noqa
 from src.core.database.models.base import Base
 
 # this is the Alembic Config object, which provides
