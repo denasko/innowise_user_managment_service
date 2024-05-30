@@ -2,8 +2,9 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-
+from src.core.config import settings
 from src.core.database.database import engine as async_engine
+from src.core.database.models.user import User # noqa
 from src.core.database.models.base import Base
 
 # this is the Alembic Config object, which provides
@@ -14,6 +15,8 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+config.set_main_option("sqlalchemy.url", settings.DB_URL + "?async_fallback=True")
 
 # add your model's MetaData object here
 # for 'autogenerate' support

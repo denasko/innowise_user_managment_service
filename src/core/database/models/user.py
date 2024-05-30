@@ -6,7 +6,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from src.core.database.models.base import Base
-from .role import Role
+from src.core.database.enums.role import Role
+from src.core.database.models.group import Group
 
 
 class User(Base):
@@ -27,4 +28,4 @@ class User(Base):
     modified_at = Column(DateTime, default=datetime.now, nullable=False, server_onupdate=func.now(),
                          server_default=func.now())
 
-    group = relationship("Group", back_populates="users")
+    group = relationship(Group, back_populates="users")
