@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database.models.user import User
 from src.core.schemas.schemas import UserCreate, UserUpdate
+from src.services.password import hash_password
 
 
 class UserManager:
@@ -32,6 +33,7 @@ class UserManager:
 
     async def create_user(self, session: AsyncSession, new_user: UserCreate) -> User:
         user = User(**new_user.model_dump())
+        user.password = hash_password(new_user.password)
         session.add(user)
         await session.commit()
         return user
