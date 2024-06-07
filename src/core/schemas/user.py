@@ -5,26 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from src.core.database.enums.role import Role
-
-
-class GroupBase(BaseModel):
-    name: str
-
-
-class GroupCreate(BaseModel):
-    pass
-
-
-class GroupUpdate(BaseModel):
-    pass
-
-
-class Group(BaseModel):
-    id: UUID
-    created_at: datetime
-
-
-# ______________________________________________________________________________________________________________________
+from src.core.schemas.group import Group
 
 
 class UserBase(BaseModel):
@@ -67,12 +48,3 @@ class User(BaseModel):
     created_at: datetime
     modified_at: datetime
     group: Group
-
-
-# ______________________________________________________________________________________________________________________
-
-
-class TokenInfo(BaseModel):
-    access_token: str
-    refresh_token: str | None = None
-    token_type: str = "Bearer"
