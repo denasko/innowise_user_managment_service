@@ -3,10 +3,8 @@ repos:
     rev: v0.4.8
     hooks:
       - id: ruff
-        exclude: ^alembic/versions/
         args: [ --fix ]
       - id: ruff-format
-        exclude: ^alembic/versions/
 
 
   - repo: https://github.com/pre-commit/mirrors-mypy

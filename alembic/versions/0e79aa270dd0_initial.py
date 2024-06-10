@@ -25,9 +25,7 @@ def upgrade() -> None:
         "groups",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(), nullable=False),
-        sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
-        ),
+        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -47,9 +45,7 @@ def upgrade() -> None:
         sa.Column("group_id", sa.UUID(), nullable=False),
         sa.Column("image_s3_path", sa.String(), nullable=False),
         sa.Column("is_blocked", sa.Boolean(), nullable=False),
-        sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
-        ),
+        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column(
             "modified_at",
             sa.DateTime(),
