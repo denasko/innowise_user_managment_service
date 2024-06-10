@@ -4,6 +4,7 @@ import jwt
 from src.core.database.models.user import User as UserModel
 from src.core.config import settings
 from src.core.schemas.token import TokenInfo
+from src.core.database.enums.token import TokenType
 
 
 class TokenService:
@@ -21,19 +22,19 @@ class TokenService:
 
     def create_access_token(self, user: UserModel) -> str:
         print(user.username)
-        jwt_payload = {"sub": user.username, "role": user.role, "email": user.email}
+        jwt_payload = {"sub": user.id, "role": user.role, "email": user.email}
 
         return self.create_jwt(
-            token_type="access_token",
+            token_type=TokenType.ACCESS,
             token_data=jwt_payload,
             token_time_to_live=settings.jwt.jwt_access_token_time_to_live_minutes,
         )
 
     def create_refresh_token(self, user: UserModel) -> str:
-        jwt_payload = {"sub": user.username}
+        jwt_payload = {"sub": user.id}
 
         return self.create_jwt(
-            token_type="refresh_token",
+            token_type=TokenType.REFRESH,
             token_data=jwt_payload,
             token_time_to_live=settings.jwt.jwt_refresh_token_time_to_live_minutes,
         )
@@ -48,7 +49,7 @@ class TokenService:
         self,
         payload: dict,
         private_key: str = settings.jwt.jwt_private_key,
-        algorithm: str | None = settings.jwt.jwt_algorithm,
+        algorithm: str = settings.jwt.jwt_algorithm,
         token_time_to_live: int = settings.jwt.jwt_access_token_time_to_live_minutes,
     ):
         """return encoded jwt token"""
