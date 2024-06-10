@@ -43,12 +43,12 @@ class UserManager:
         return result.all()
 
     async def create_user(self, new_user: UserCreate) -> UserModel:
-        user: UserModel = UserModel(**new_user.model_dump())
+        user_in_db: UserModel = UserModel(**new_user.model_dump())
 
-        self.session.add(user)
+        self.session.add(user_in_db)
         await self.session.commit()
 
-        return user
+        return user_in_db
 
     async def edit_user(self, current_user: UserModel, user_update: UserUpdate) -> UserModel:
         for field, value in user_update.model_dump().items():
