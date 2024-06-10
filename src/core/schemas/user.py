@@ -20,7 +20,13 @@ class UserBase(BaseModel):
     is_blocked: bool = False
 
 
-class UserRead(UserBase): ...
+class UserRead(BaseModel):
+    name: str
+    surname: str
+    username: str
+    phone_number: str
+    email: str
+    role: Role = Role.USER
 
 
 class UserCreate(BaseModel):

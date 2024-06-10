@@ -8,11 +8,11 @@ class GroupBase(BaseModel):
     name: str
 
 
-class GroupCreate(BaseModel):
+class GroupCreate(GroupBase):
     pass
 
 
-class GroupUpdate(BaseModel):
+class GroupUpdate(GroupBase):
     pass
 
 
