@@ -10,5 +10,5 @@ async def login(
     username: str = Form(),
     password: str = Form(),
     auth_service: AuthService = Depends(get_authorization_service),
-):
+) -> TokenInfo:
     return await auth_service.login(username=username, password=password)
