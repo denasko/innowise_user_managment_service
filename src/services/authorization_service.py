@@ -1,15 +1,19 @@
-from fastapi import Depends, HTTPException, status
+import jwt
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials
-from jwt.exceptions import InvalidTokenError
+from jwt import PyJWTError
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
 
+from src.api.v1.bearer import bearer
+from src.core.config import settings
 from src.core.database.enums.token import TokenType
 from src.core.database.models.user import User as UserModel
-from src.api.v1.bearer import bearer
 from src.core.schemas.token import TokenInfo
 from src.managers.user_manager import UserManager
-from src.utils.password import check_password
 from src.services.token_sevice import TokenService
+from src.utils.password import check_password
+from src.core.exeption_handlers import AuthenticationException, TokenException
 
 
 class AuthService:
@@ -17,30 +21,33 @@ class AuthService:
         self.repository = UserManager(session=session)
         self.token_service = TokenService()
 
-    async def validate_auth_user(self, username: str, password: str) -> UserModel | None:
-        """return user if user exist, not blocked and password is correct"""
+    async def get_user_to_login(self, username: str, password: str) -> UserModel:
+        """if user exist in db and password in form equal to password from db, return user"""
         user: UserModel | None = await self.repository.get_user_by_field(username=username)
         if user is None or not check_password(password=password, hashed_password=user.password):
-            return None
+            raise AuthenticationException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="invalid login or password",
+            )
         return user
 
     def get_current_token_payload(
         self,
         credentials: HTTPAuthorizationCredentials = Depends(bearer),
     ) -> dict:
-        """return payload if token is valid"""
+        """return decode token if token is valid"""
         token: str = credentials.credentials
         try:
-            payload: dict = self.token_service.decode_jwt(token=token)
-        except InvalidTokenError as e:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"invalid token error: {e}",
+            payload: dict = jwt.decode(
+                jwt=token,
+                algorithms=settings.jwt.jwt_algorithm,
+                key=settings.jwt.jwt_public_key,
             )
-
+        except PyJWTError:
+            raise TokenException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid token")
         return payload
 
-    async def get_current_auth_not_blocked_user(
+    async def get_user_from_jwt(
         self,
         payload: dict,
     ) -> UserModel:
@@ -48,22 +55,22 @@ class AuthService:
 
         token_type = payload.get("type")
         if token_type != TokenType.ACCESS:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token type")
+            raise TokenException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid token type")
 
         user: UserModel | None = await self.repository.get_user_by_field(user_id=payload["sub"])
         if user is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+            raise AuthenticationException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+
         if user.is_blocked:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="user is blocked")
+            raise AuthenticationException(status_code=status.HTTP_403_FORBIDDEN, detail="user is blocked")
 
         return user
 
     async def login(self, username: str, password: str) -> TokenInfo:
-        """if user exist and not blocked, generate access and refresh token"""
-        user: UserModel | None = await self.validate_auth_user(username=username, password=password)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="incorrect username or password",
-            )
-        return self.token_service.generate_two_tokens(user=user)
+        """take user from db and generate to him access and refresh token"""
+        user: UserModel = await self.get_user_to_login(username=username, password=password)
+
+        access_token = self.token_service.create_jwt_token(user=user, token_type=TokenType.ACCESS)
+        refresh_token = self.token_service.create_jwt_token(user=user, token_type=TokenType.REFRESH)
+
+        return TokenInfo(access_token=access_token, refresh_token=refresh_token)

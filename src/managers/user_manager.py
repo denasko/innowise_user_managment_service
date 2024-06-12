@@ -3,7 +3,6 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.core.database.models.user import User as UserModel
 from src.core.schemas.user import UserCreate, UserUpdate
 
@@ -44,10 +43,8 @@ class UserManager:
 
     async def create_user(self, new_user: UserCreate) -> UserModel:
         user_in_db: UserModel = UserModel(**new_user.model_dump())
-
         self.session.add(user_in_db)
         await self.session.commit()
-
         return user_in_db
 
     async def edit_user(self, current_user: UserModel, user_update: UserUpdate) -> UserModel:

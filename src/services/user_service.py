@@ -19,20 +19,25 @@ class UserService:
 
         return await self.repository.create_user(new_user=new_user)
 
-    async def delete_user(self, credentials: HTTPAuthorizationCredentials) -> dict:
+    async def delete_current_user(self, credentials: HTTPAuthorizationCredentials) -> dict:
         payload: dict = self.auth_service.get_current_token_payload(credentials=credentials)
-        user_to_delete: UserModel = await self.auth_service.get_current_auth_not_blocked_user(payload=payload)
+
+        user_to_delete: UserModel = await self.auth_service.get_user_from_jwt(payload=payload)
 
         return await self.repository.delete_user(user_to_delete=user_to_delete)
 
-    async def update_user(self, user_update: UserUpdate, credentials: HTTPAuthorizationCredentials) -> UserModel:
-        payload: dict = self.auth_service.get_current_token_payload(credentials=credentials)
-        current_user: UserModel = await self.auth_service.get_current_auth_not_blocked_user(payload=payload)
+    async def update_current_user(
+        self, user_update: UserUpdate, credentials: HTTPAuthorizationCredentials
+    ) -> UserModel:
+        token_payload: dict = self.auth_service.get_current_token_payload(credentials=credentials)
+
+        current_user: UserModel = await self.auth_service.get_user_from_jwt(payload=token_payload)
 
         return await self.repository.edit_user(user_update=user_update, current_user=current_user)
 
     async def read_current_user(self, credentials: HTTPAuthorizationCredentials) -> UserModel:
         payload: dict = self.auth_service.get_current_token_payload(credentials=credentials)
-        current_user: UserModel = await self.auth_service.get_current_auth_not_blocked_user(payload=payload)
+
+        current_user: UserModel = await self.auth_service.get_user_from_jwt(payload=payload)
 
         return current_user
