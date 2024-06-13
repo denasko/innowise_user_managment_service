@@ -1,20 +1,35 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
-    DB_HOST: str = "localhost"
-    DB_PORT: int = 5432
-    DB_NAME: str = "db_user_management"
-    DB_USER: str = "db_user_management"
-    DB_PASSWORD: str = "db_user_management"
+class AuthJWT(BaseSettings):
+    jwt_private_key: str
+    jwt_public_key: str
+    jwt_algorithm: str
+    jwt_access_token_time_to_live_minutes: int = 15
+    jwt_refresh_token_time_to_live_minutes: int = 15000
 
-    POSTGRES_DB: str = "postgres"
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
+
+
+class DatabaseSettings(BaseSettings):
+    db_host: str
+    db_port: int
+    db_name: str
+    db_user: str
+    db_password: str
+
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
     @property
     def DB_URL(self) -> str:
-        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+
+
+class Settings(BaseSettings):
+    db: DatabaseSettings = DatabaseSettings()
+    jwt: AuthJWT = AuthJWT()
+
+    model_config = SettingsConfigDict(env_file=".env")
 
 
 settings = Settings()
