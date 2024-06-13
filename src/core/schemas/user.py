@@ -26,9 +26,6 @@ class UserCreate(UserBase):
     group_id: UUID
 
 
-class UserUpdate(UserBase): ...
-
-
 class User(UserBase):
     id: UUID
     created_at: datetime
