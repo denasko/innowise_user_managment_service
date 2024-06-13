@@ -1,11 +1,8 @@
 import jwt
-from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials
 from jwt import PyJWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
-
-from src.api.v1.bearer import bearer
 from src.core.config import settings
 from src.core.database.enums.token import TokenType
 from src.core.database.models.user import User as UserModel
@@ -33,7 +30,7 @@ class AuthService:
 
     def get_current_token_payload(
         self,
-        credentials: HTTPAuthorizationCredentials = Depends(bearer),
+        credentials: HTTPAuthorizationCredentials,
     ) -> dict:
         """return decode token if token is valid"""
         token: str = credentials.credentials
@@ -52,12 +49,8 @@ class AuthService:
         payload: dict,
     ) -> UserModel:
         """return user if user exist, not blocked and type token is access"""
-
-        token_type = payload.get("type")
-        if token_type != TokenType.ACCESS:
-            raise TokenException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid token type")
-
         user: UserModel | None = await self.repository.get_user_by_field(user_id=payload["sub"])
+
         if user is None:
             raise AuthenticationException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
 
