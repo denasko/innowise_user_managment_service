@@ -18,17 +18,17 @@ class UserBase(BaseModel):
     image_s3_path: Optional[str] = None
 
 
-class UserRead(UserBase): ...
-
-
-class UserCreate(UserBase):
-    password: str
-    group_id: UUID
-
-
-class User(UserBase):
+class UserRead(UserBase):
     id: UUID
     created_at: datetime
     modified_at: datetime
     is_blocked: bool = False
     group: Group
+
+
+class UserUpdate(UserBase): ...
+
+
+class UserCreate(UserBase):
+    password: str
+    group_id: UUID

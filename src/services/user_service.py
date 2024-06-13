@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.core.schemas.user import UserCreate, UserRead
+from src.core.schemas.user import UserCreate, UserUpdate
 from src.core.database.models.user import User as UserModel
 from src.managers.user_manager import UserManager
 from src.services.authorization_service import AuthService
@@ -21,5 +21,5 @@ class UserService:
     async def delete_current_user(self, current_user: UserModel) -> dict:
         return await self.repository.delete_user(user_to_delete=current_user)
 
-    async def update_current_user(self, user_update: UserRead, current_user: UserModel) -> UserModel:
+    async def update_current_user(self, user_update: UserUpdate, current_user: UserModel) -> UserModel:
         return await self.repository.edit_user(user_update=user_update, current_user=current_user)

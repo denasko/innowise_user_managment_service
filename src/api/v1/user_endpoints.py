@@ -5,7 +5,7 @@ from fastapi.security import HTTPBearer
 
 from src.core.database.models.user import User
 from src.core.dependencies import get_user_service, get_user_from_token
-from src.core.schemas.user import UserRead
+from src.core.schemas.user import UserRead, UserUpdate
 from src.services.user_service import UserService
 
 user_router = APIRouter(prefix="/user", dependencies=[Depends(HTTPBearer)])
@@ -13,7 +13,7 @@ user_router = APIRouter(prefix="/user", dependencies=[Depends(HTTPBearer)])
 
 @user_router.patch("/me", response_model=UserRead)
 async def edit_current_user(
-    user_update: UserRead,
+    user_update: UserUpdate,
     current_user: User = Depends(get_user_from_token),
     user_service: UserService = Depends(get_user_service),
 ):
