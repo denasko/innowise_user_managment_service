@@ -3,7 +3,9 @@ from uuid import UUID
 
 from fastapi import Depends, APIRouter
 from fastapi.security import HTTPBearer
+from pydantic import PositiveInt
 
+from src.core.database.enums.sorting import OrderBY, SortBY
 from src.core.database.models.user import User
 from src.core.dependencies import get_user_service, get_user_from_token
 from src.core.schemas.user import UserRead, UserUpdate
@@ -38,11 +40,11 @@ async def delete_current_user(
 
 @user_router.get("/users", response_model=Sequence[UserRead])
 async def get_collection_of_users(
-    page: int = 1,
-    limit: int = 3,
+    page: PositiveInt = 1,
+    limit: PositiveInt = 10,
     filter_by_name: Optional[str] = None,
-    sort_by: Optional[str] = None,
-    order_by: Optional[str] = None,
+    sort_by: Optional[str] = SortBY.NAME,
+    order_by: Optional[str] = OrderBY.DESC,
     current_user: User = Depends(get_user_from_token),
     user_service: UserService = Depends(get_user_service),
 ):
@@ -62,7 +64,7 @@ async def read_target_user_by_id(
     current_user: User = Depends(get_user_from_token),
     user_service: UserService = Depends(get_user_service),
 ):
-    return await user_service.read_target_user_by_id(current_user=current_user, target_user_id=user_id)
+    return await user_service.get_target_user_with_permissions(current_user=current_user, target_user_id=user_id)
 
 
 @user_router.patch("/{user_id}", response_model=UserRead)

@@ -1,7 +1,6 @@
 from typing import Optional, Sequence
 from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -16,6 +15,7 @@ from src.managers.user_manager import UserManager
 from src.services.authorization_service import AuthService
 from src.services.token_sevice import TokenService
 from src.utils.password import hash_password
+from src.core.database.enums.sorting import OrderBY, SortBY
 
 
 class UserService:
@@ -33,14 +33,7 @@ class UserService:
         return await self.repository.delete_user(user_to_delete=current_user)
 
     async def update_current_user(self, user_update: UserUpdate, current_user: UserModel) -> UserModel:
-        return await self.repository.edit_user(user_update=user_update, current_user=current_user)
-
-    async def read_target_user_by_id(self, current_user: UserModel, target_user_id: UUID) -> UserModel:
-        target_user: UserModel = await self.get_target_user_with_permissions(
-            current_user=current_user, target_user_id=target_user_id
-        )
-
-        return target_user
+        return await self.repository.edit_user(user_update=user_update, current_user_id=current_user.id)
 
     async def update_another_user_by_id(
         self,
@@ -54,14 +47,7 @@ class UserService:
                 detail=f"User {current_user.username} with role {current_user.role} not have permissions",
             )
 
-        target_user: UserModel | None = await self.repository.get_user_by_field(user_id=target_user_id)
-        if not target_user:
-            raise UserNotFoundException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with ID {target_user_id} not found",
-            )
-
-        return await self.repository.edit_user(current_user=target_user, user_update=target_user_updated_fields)
+        return await self.repository.edit_user(current_user_id=target_user_id, user_update=target_user_updated_fields)
 
     async def get_target_user_with_permissions(self, current_user: UserModel, target_user_id: UUID) -> UserModel:
         target_user: Optional[UserModel] = await self.repository.get_user_by_field(user_id=target_user_id)
@@ -72,7 +58,7 @@ class UserService:
                 detail=f"User with ID {target_user_id} not found",
             )
 
-        if not self.check_permissions_to_read_or_update_target_user(current_user, target_user):
+        if not self._check_permissions_to_read_or_update_target_user(current_user, target_user):
             raise PermissionException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"User {current_user.username} does not have permission",
@@ -80,7 +66,8 @@ class UserService:
 
         return target_user
 
-    def check_permissions_to_read_or_update_target_user(self, current_user: UserModel, target_user: UserModel) -> bool:
+    @staticmethod
+    def _check_permissions_to_read_or_update_target_user(current_user: UserModel, target_user: UserModel) -> bool:
         if current_user.role == Role.USER:
             raise PermissionException(status_code=status.HTTP_403_FORBIDDEN, detail="not have permission")
 
@@ -98,15 +85,11 @@ class UserService:
         page: int = 1,
         limit: int = 10,
         filter_by_name: Optional[str] = None,
-        sort_by: Optional[str] = None,
-        order_by: Optional[str] = None,
+        sort_by: Optional[str] = SortBY.NAME,
+        order_by: Optional[str] = OrderBY.DESC,
     ) -> Sequence[UserModel]:
         if current_user.role == Role.USER:
             raise PermissionException(status_code=403, detail="Not enough permissions")
-        query = select(UserModel)
-
-        if current_user.role == Role.MODERATOR:
-            query = query.where(UserModel.group_id == current_user.group_id)
 
         return await self.repository.get_collection_of_users(
             page=page,
@@ -114,5 +97,6 @@ class UserService:
             filter_by_name=filter_by_name,
             sort_by=sort_by,
             order_by=order_by,
-            query=query,
+            current_user=current_user,
+            is_moderator=current_user.role == Role.MODERATOR,
         )
