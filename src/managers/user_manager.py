@@ -1,4 +1,4 @@
-from typing import Sequence, Optional
+from typing import Sequence, Optional, Any
 from uuid import UUID
 
 from sqlalchemy import select
@@ -51,6 +51,7 @@ class UserManager:
         for field, value in user_update.model_dump().items():
             setattr(current_user, field, value)
         await self.session.commit()
+        await self.session.refresh(current_user)
 
         return current_user
 
@@ -61,3 +62,31 @@ class UserManager:
         await self.session.commit()
 
         return {username.title(): "Was deleted"}
+
+    async def get_collection_of_users(
+        self,
+        page: int = 1,
+        limit: int = 10,
+        filter_by_name: Optional[str] = None,
+        sort_by: Optional[str] = None,
+        order_by: Optional[str] = None,
+        query: Any = None,
+    ) -> Sequence[UserModel]:
+        if filter_by_name:
+            query = query.where(
+                UserModel.name.ilike(f"%{filter_by_name}%") | UserModel.surname.ilike(f"%{filter_by_name}%")
+            )
+
+        if sort_by:
+            if order_by == "desc":
+                query = query.order_by(getattr(UserModel, sort_by).desc())
+            else:
+                query = query.order_by(getattr(UserModel, sort_by).asc())
+
+        offset = (page - 1) * limit
+        query = query.offset(offset).limit(limit)
+
+        result = await self.session.execute(query)
+        users = result.scalars().all()
+
+        return users

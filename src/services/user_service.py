@@ -1,10 +1,21 @@
+from typing import Optional, Sequence
+from uuid import UUID
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.core.schemas.user import UserCreate, UserUpdate
+from starlette import status
+
+from src.core.database.enums.role import Role
 from src.core.database.models.user import User as UserModel
+from src.core.exeption_handlers import (
+    PermissionException,
+    UserNotFoundException,
+)
+from src.core.schemas.user import UserCreate, UserUpdate
 from src.managers.user_manager import UserManager
 from src.services.authorization_service import AuthService
-from src.utils.password import hash_password
 from src.services.token_sevice import TokenService
+from src.utils.password import hash_password
 
 
 class UserService:
@@ -23,3 +34,85 @@ class UserService:
 
     async def update_current_user(self, user_update: UserUpdate, current_user: UserModel) -> UserModel:
         return await self.repository.edit_user(user_update=user_update, current_user=current_user)
+
+    async def read_target_user_by_id(self, current_user: UserModel, target_user_id: UUID) -> UserModel:
+        target_user: UserModel = await self.get_target_user_with_permissions(
+            current_user=current_user, target_user_id=target_user_id
+        )
+
+        return target_user
+
+    async def update_another_user_by_id(
+        self,
+        current_user: UserModel,
+        target_user_id: UUID,
+        target_user_updated_fields: UserUpdate,
+    ) -> UserModel:
+        if current_user.role != Role.ADMIN:
+            raise PermissionException(
+                status_code=403,
+                detail=f"User {current_user.username} with role {current_user.role} not have permissions",
+            )
+
+        target_user: UserModel | None = await self.repository.get_user_by_field(user_id=target_user_id)
+        if not target_user:
+            raise UserNotFoundException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with ID {target_user_id} not found",
+            )
+
+        return await self.repository.edit_user(current_user=target_user, user_update=target_user_updated_fields)
+
+    async def get_target_user_with_permissions(self, current_user: UserModel, target_user_id: UUID) -> UserModel:
+        target_user: Optional[UserModel] = await self.repository.get_user_by_field(user_id=target_user_id)
+
+        if not target_user:
+            raise UserNotFoundException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with ID {target_user_id} not found",
+            )
+
+        if not self.check_permissions_to_read_or_update_target_user(current_user, target_user):
+            raise PermissionException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"User {current_user.username} does not have permission",
+            )
+
+        return target_user
+
+    def check_permissions_to_read_or_update_target_user(self, current_user: UserModel, target_user: UserModel) -> bool:
+        if current_user.role == Role.USER:
+            raise PermissionException(status_code=status.HTTP_403_FORBIDDEN, detail="not have permission")
+
+        if current_user.role == Role.MODERATOR and target_user.role == Role.ADMIN:
+            raise PermissionException(status_code=status.HTTP_403_FORBIDDEN, detail="not have permission")
+
+        if current_user.role == Role.MODERATOR and current_user.group_id != target_user.group_id:
+            raise PermissionException(status_code=status.HTTP_403_FORBIDDEN, detail="not have permission")
+
+        return True
+
+    async def get_collection_of_users(
+        self,
+        current_user: UserModel,
+        page: int = 1,
+        limit: int = 10,
+        filter_by_name: Optional[str] = None,
+        sort_by: Optional[str] = None,
+        order_by: Optional[str] = None,
+    ) -> Sequence[UserModel]:
+        if current_user.role == Role.USER:
+            raise PermissionException(status_code=403, detail="Not enough permissions")
+        query = select(UserModel)
+
+        if current_user.role == Role.MODERATOR:
+            query = query.where(UserModel.group_id == current_user.group_id)
+
+        return await self.repository.get_collection_of_users(
+            page=page,
+            limit=limit,
+            filter_by_name=filter_by_name,
+            sort_by=sort_by,
+            order_by=order_by,
+            query=query,
+        )
