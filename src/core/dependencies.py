@@ -29,11 +29,9 @@ def get_authorization_service(
 
 
 async def get_user_from_token(
-    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer),
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
     auth_service: AuthService = Depends(get_authorization_service),
 ) -> User:
     payload: dict = auth_service.get_current_token_payload(credentials=credentials)
-
     user_from_jwt: User = await auth_service.get_user_from_jwt(payload=payload)
-
     return user_from_jwt
