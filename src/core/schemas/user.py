@@ -5,7 +5,6 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from src.core.database.enums.role import Role
-from src.core.schemas.group import Group
 
 
 class UserBase(BaseModel):
@@ -23,7 +22,7 @@ class UserRead(UserBase):
     created_at: datetime
     modified_at: datetime
     is_blocked: bool = False
-    group: Group
+    group_id: UUID
 
 
 class UserUpdate(UserBase): ...
