@@ -1,17 +1,19 @@
 from datetime import datetime, timezone, timedelta
+from typing import Any
 
+from src.managers.token_manager import RedisDB
 import jwt
-from starlette import status
-
+from fastapi.security import HTTPAuthorizationCredentials
 from src.core.config import settings
 from src.core.database.enums.token import TokenType
 from src.core.database.models.user import User as UserModel
 from src.core.exeption_handlers import TokenException
+from src.core.schemas.token import TokenInfo
 
 
 class TokenService:
     def __init__(self):
-        pass
+        self.repository = RedisDB()
 
     def create_jwt_token(self, user: UserModel, token_type: TokenType) -> str:
         """created token payload"""
@@ -26,7 +28,7 @@ class TokenService:
             token_time_to_live = settings.jwt.jwt_access_token_time_to_live_minutes
 
         else:
-            raise TokenException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid token type")
+            raise TokenException()
 
         return self.encode_jwt(payload=jwt_payload, token_time_to_live=token_time_to_live)
 
@@ -47,3 +49,23 @@ class TokenService:
 
         encoded = jwt.encode(payload=to_encode, key=private_key, algorithm=algorithm)
         return encoded
+
+    def refresh_token(self, current_user: UserModel, credentials: HTTPAuthorizationCredentials):
+        token: str = credentials.credentials
+
+        payload: Any = jwt.decode(
+            jwt=token,
+            algorithms=settings.jwt.jwt_algorithm,
+            key=settings.jwt.jwt_public_key,
+        )
+        if payload.get("type") != TokenType.REFRESH:
+            raise TokenException()
+
+        if self.repository.is_token_in_blacklist(token):
+            raise TokenException(detail="Token is blacklisted. Please log in again.")
+
+        self.repository.set_token(token=token, value=token)
+
+        refresh_token = self.create_jwt_token(user=current_user, token_type=TokenType.REFRESH)
+        access_token = self.create_jwt_token(user=current_user, token_type=TokenType.ACCESS)
+        return TokenInfo(access_token=access_token, refresh_token=refresh_token)
