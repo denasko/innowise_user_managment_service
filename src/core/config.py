@@ -18,6 +18,9 @@ class DatabaseSettings(BaseSettings):
     db_user: str
     db_password: str
 
+    redis_host = str
+    redis_port = str
+
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
     @property

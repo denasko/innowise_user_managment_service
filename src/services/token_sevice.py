@@ -3,7 +3,6 @@ from datetime import datetime, timezone, timedelta
 import jwt
 from fastapi.security import HTTPAuthorizationCredentials
 from starlette import status
-
 from src.core.config import settings
 from src.core.database.enums.token import TokenType
 from src.core.database.models.user import User as UserModel
@@ -50,7 +49,7 @@ class TokenService:
         encoded = jwt.encode(payload=to_encode, key=private_key, algorithm=algorithm)
         return encoded
 
-    def refresh_token(self, current_user: UserModel, credentials: HTTPAuthorizationCredentials) -> TokenInfo:
+    async def refresh_token(self, current_user: UserModel, credentials: HTTPAuthorizationCredentials) -> TokenInfo:
         access_token = self.create_jwt_token(user=current_user, token_type=TokenType.ACCESS)
         refresh_token = self.create_jwt_token(user=current_user, token_type=TokenType.REFRESH)
 
