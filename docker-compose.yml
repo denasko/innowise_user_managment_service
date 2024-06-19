@@ -39,8 +39,6 @@ services:
   redis:
     image: redis:7.4-rc1
     container_name: redis_db
-    environment:
-      REDIS_HOST: localhost
     ports:
       - "6379:6379"
     volumes:
