@@ -2,7 +2,6 @@ import jwt
 from fastapi.security import HTTPAuthorizationCredentials
 from jwt import PyJWTError
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
 from src.core.config import settings
 from src.core.database.enums.token import TokenType
 from src.core.database.models.user import User as UserModel
@@ -10,7 +9,11 @@ from src.core.schemas.token import TokenInfo
 from src.managers.user_manager import UserManager
 from src.services.token_sevice import TokenService
 from src.utils.password import check_password
-from src.core.exeption_handlers import AuthenticationException, TokenException
+from src.core.exeption_handlers import (
+    AuthenticationException,
+    TokenException,
+    UserNotFoundException,
+)
 
 
 class AuthService:
@@ -21,11 +24,11 @@ class AuthService:
     async def get_user_to_login(self, username: str, password: str) -> UserModel:
         """if user exist in db and password in form equal to password from db, return user"""
         user: UserModel | None = await self.repository.get_user_by_field(username=username)
-        if user is None or not check_password(password=password, hashed_password=user.password):
-            raise AuthenticationException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="invalid login or password",
-            )
+        if user is None:
+            raise UserNotFoundException()
+
+        if not check_password(password=password, hashed_password=user.password):
+            raise AuthenticationException()
         return user
 
     def get_current_token_payload(
@@ -41,7 +44,7 @@ class AuthService:
                 key=settings.jwt.jwt_public_key,
             )
         except PyJWTError:
-            raise TokenException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid token")
+            raise TokenException()
         return payload
 
     async def get_user_from_jwt(
@@ -52,10 +55,10 @@ class AuthService:
         user: UserModel | None = await self.repository.get_user_by_field(user_id=payload["sub"])
 
         if user is None:
-            raise AuthenticationException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+            raise UserNotFoundException()
 
         if user.is_blocked:
-            raise AuthenticationException(status_code=status.HTTP_403_FORBIDDEN, detail="user is blocked")
+            raise AuthenticationException(detail="user is blocked")
 
         return user
 

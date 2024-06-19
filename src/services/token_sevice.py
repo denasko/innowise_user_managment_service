@@ -1,13 +1,12 @@
 from datetime import datetime, timezone, timedelta
+
 import jwt
-from fastapi.security import HTTPAuthorizationCredentials
 from starlette import status
+
 from src.core.config import settings
 from src.core.database.enums.token import TokenType
 from src.core.database.models.user import User as UserModel
 from src.core.exeption_handlers import TokenException
-from src.core.schemas.token import TokenInfo
-from src.core.database.database import redisik
 
 
 class TokenService:
@@ -48,20 +47,3 @@ class TokenService:
 
         encoded = jwt.encode(payload=to_encode, key=private_key, algorithm=algorithm)
         return encoded
-
-    async def refresh_token(self, current_user: UserModel, credentials: HTTPAuthorizationCredentials) -> TokenInfo:
-        token = jwt.decode(
-            jwt=credentials,
-            algorithms=settings.jwt.jwt_algorithm,
-            key=settings.jwt.jwt_public_key,
-        )
-        if token["type"] != TokenType.REFRESH:
-            raise TokenException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token type")
-
-        save_token_to_blacklist = redisik.set_token(key=credentials, value=credentials)
-        if save_token_to_blacklist:
-            access_token = self.create_jwt_token(user=current_user, token_type=TokenType.ACCESS)
-            refresh_token = self.create_jwt_token(user=current_user, token_type=TokenType.REFRESH)
-
-            return TokenInfo(access_token=access_token, refresh_token=refresh_token)
-        raise TokenException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token type")
