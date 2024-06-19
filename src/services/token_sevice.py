@@ -1,7 +1,6 @@
 from datetime import datetime, timezone, timedelta
 
 import jwt
-from starlette import status
 
 from src.core.config import settings
 from src.core.database.enums.token import TokenType
@@ -26,7 +25,7 @@ class TokenService:
             token_time_to_live = settings.jwt.jwt_access_token_time_to_live_minutes
 
         else:
-            raise TokenException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid token type")
+            raise TokenException()
 
         return self.encode_jwt(payload=jwt_payload, token_time_to_live=token_time_to_live)
 

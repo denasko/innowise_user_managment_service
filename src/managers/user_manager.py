@@ -3,10 +3,9 @@ from uuid import UUID
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
 
 from src.core.exeption_handlers import UserNotFoundException
-from src.core.database.enums.sorting import OrderBY, SortBY
+from src.core.database.enums.sorting import OrderBy, SortBy
 from src.core.database.models.user import User as UserModel
 from src.core.schemas.user import UserCreate, UserUpdate
 
@@ -47,11 +46,7 @@ class UserManager:
 
     async def edit_user(self, current_user_id: UUID, user_update: UserUpdate) -> UserModel:
         query = (
-            update(UserModel)
-            .where(UserModel.id == current_user_id)
-            .values(**user_update.dict())
-            .execution_options(synchronize_session="fetch")
-            .returning(UserModel)
+            update(UserModel).where(UserModel.id == current_user_id).values(**user_update.dict()).returning(UserModel)
         )
 
         result = await self.session.execute(query)
@@ -61,10 +56,8 @@ class UserManager:
         updated_user = result.scalar()
 
         if not updated_user:
-            raise UserNotFoundException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with ID {current_user_id} not found",
-            )
+            raise UserNotFoundException()
+
         return updated_user
 
     async def delete_user(self, user_to_delete: UserModel) -> dict:
@@ -81,8 +74,8 @@ class UserManager:
         page: int = 1,
         limit: int = 10,
         filter_by_name: Optional[str] = None,
-        sort_by: Optional[str] = SortBY.NAME,
-        order_by: Optional[str] = OrderBY.DESC,
+        sort_by: Optional[str] = SortBy.NAME,
+        order_by: Optional[str] = OrderBy.DESC,
         is_moderator: bool = False,
     ) -> Sequence[UserModel]:
         query = select(UserModel)
@@ -97,13 +90,12 @@ class UserManager:
 
         if sort_by and order_by:
             if hasattr(UserModel, sort_by):
-                if order_by.lower() == OrderBY.DESC:
+                if order_by.lower() == OrderBy.DESC:
                     query = query.order_by(getattr(UserModel, sort_by.lower()).desc())
                 else:
                     query = query.order_by(getattr(UserModel, sort_by.lower()).asc())
             else:
                 raise UserNotFoundException(
-                    status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Field {sort_by} not found",
                 )
 

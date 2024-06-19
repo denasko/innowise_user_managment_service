@@ -5,7 +5,7 @@ from fastapi import Depends, APIRouter
 from fastapi.security import HTTPBearer
 from pydantic import PositiveInt
 
-from src.core.database.enums.sorting import OrderBY, SortBY
+from src.core.database.enums.sorting import OrderBy, SortBy
 from src.core.database.models.user import User
 from src.core.dependencies import get_user_service, get_user_from_token
 from src.core.schemas.user import UserRead, UserUpdate
@@ -43,8 +43,8 @@ async def get_collection_of_users(
     page: PositiveInt = 1,
     limit: PositiveInt = 10,
     filter_by_name: Optional[str] = None,
-    sort_by: Optional[str] = SortBY.NAME,
-    order_by: Optional[str] = OrderBY.DESC,
+    sort_by: Optional[str] = SortBy.NAME,
+    order_by: Optional[str] = OrderBy.DESC,
     current_user: User = Depends(get_user_from_token),
     user_service: UserService = Depends(get_user_service),
 ):
