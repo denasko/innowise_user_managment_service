@@ -12,5 +12,6 @@ repos:
     hooks:
       - id: mypy
         exclude: ^alembic/versions/
+        additional_dependencies: [ types-redis ]
 
 

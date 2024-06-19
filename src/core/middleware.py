@@ -18,7 +18,7 @@ class BearerMiddleware(BaseHTTPMiddleware):
         super().__init__(app=app)
 
     async def dispatch(self, request, call_next):
-        if request.url.path not in self.AUTH_EXCLUDE_PATH:
+        if request.url.path in self.AUTH_EXCLUDE_PATH:
             return await call_next(request)
 
         if not request.headers.get("Authorization"):
