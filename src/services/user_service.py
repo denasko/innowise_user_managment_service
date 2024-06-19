@@ -83,7 +83,7 @@ class UserService:
         order_by: Optional[str] = OrderBy.DESC,
     ) -> Sequence[UserModel]:
         if current_user.role == Role.USER:
-            raise PermissionException(status_code=403, detail="Not enough permissions")
+            raise PermissionException()
 
         return await self.repository.get_collection_of_users(
             page=page,
