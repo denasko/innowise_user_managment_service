@@ -25,11 +25,22 @@ class DatabaseSettings(BaseSettings):
         return f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
 
+class RedisSettings(BaseSettings):
+    redis_host: str
+    redis_port: int
+
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
+
+
 class Settings(BaseSettings):
     db: DatabaseSettings = DatabaseSettings()
     jwt: AuthJWT = AuthJWT()
+    redis: RedisSettings = RedisSettings()
 
     model_config = SettingsConfigDict(env_file=".env")
 
 
 settings = Settings()
+print("DB Host:", settings.db.db_host)
+print("Redis Port:", settings.redis.redis_port)
+print("Redis Host:", settings.redis.redis_host)
