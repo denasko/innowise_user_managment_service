@@ -32,3 +32,8 @@ class UserNotFoundException(HTTPException):
         detail: str = "User not found",
     ):
         super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
+
+
+class RedisException(HTTPException):
+    def __init__(self, detail: str = "Redis error occurred"):
+        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
