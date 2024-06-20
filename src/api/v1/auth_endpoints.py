@@ -37,4 +37,4 @@ async def auth_refresh_jwt(
     token_service: TokenService = Depends(get_token_service),
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
 ):
-    return token_service.refresh_token(current_user=current_user, credentials=credentials)
+    return await token_service.refresh_token(current_user=current_user, credentials=credentials)
