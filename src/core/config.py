@@ -41,6 +41,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-print("DB Host:", settings.db.db_host)
-print("Redis Port:", settings.redis.redis_port)
-print("Redis Host:", settings.redis.redis_host)
