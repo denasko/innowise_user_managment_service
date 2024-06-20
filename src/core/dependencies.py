@@ -18,8 +18,8 @@ def get_user_service(session: AsyncSession = Depends(get_session)) -> UserServic
     return UserService(session=session)
 
 
-def get_token_service() -> TokenService:
-    return TokenService()
+def get_token_service(session: AsyncSession = Depends(get_session)) -> TokenService:
+    return TokenService(session=session)
 
 
 def get_authorization_service(
@@ -30,8 +30,8 @@ def get_authorization_service(
 
 async def get_user_from_token(
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
-    auth_service: AuthService = Depends(get_authorization_service),
+    token_service: TokenService = Depends(get_token_service),
 ) -> User:
-    payload: dict = auth_service.get_current_token_payload(credentials=credentials)
-    user_from_jwt: User = await auth_service.get_user_from_jwt(payload=payload)
+    payload: dict = token_service.get_current_token_payload(credentials=credentials)
+    user_from_jwt: User = await token_service.get_user_from_jwt(payload=payload)
     return user_from_jwt

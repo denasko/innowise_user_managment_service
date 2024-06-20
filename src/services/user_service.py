@@ -21,7 +21,7 @@ class UserService:
     def __init__(self, session: AsyncSession):
         self.auth_service = AuthService(session=session)
         self.repository = UserManager(session=session)
-        self.token_service = TokenService()
+        self.token_service = TokenService(session=session)
 
     async def create_new_user(self, new_user: UserCreate) -> UserModel:
         new_user.password = hash_password(new_user.password)
