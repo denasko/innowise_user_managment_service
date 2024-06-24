@@ -20,6 +20,6 @@ class RedisDB:
 
     async def is_token_in_blacklist(self, token: str) -> bool:
         try:
-            return await self.__redis_connect.exists(token) == 1
+            return await self.__redis_connect.exists(token) > 0
         except aioredis.RedisError:
             raise RedisException(detail="Failed to check token in blacklist")
