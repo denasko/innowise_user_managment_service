@@ -38,7 +38,7 @@ class RabbitMQSettings(BaseSettings):
     rabbitmq_user: str
     rabbitmq_password: str
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
 
 class Settings(BaseSettings):

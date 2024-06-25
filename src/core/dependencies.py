@@ -2,7 +2,6 @@ import aio_pika
 from aio_pika.abc import AbstractRobustConnection
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pika.adapters.blocking_connection import BlockingConnection
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
@@ -52,6 +51,6 @@ async def get_rabbitmq_connection() -> AbstractRobustConnection:
 
 
 def get_rabbitmq_service(
-    connection: BlockingConnection = Depends(get_rabbitmq_connection),
+    connection: AbstractRobustConnection = Depends(get_rabbitmq_connection),
 ) -> RabbitMQService:
     return RabbitMQService(connection=connection)

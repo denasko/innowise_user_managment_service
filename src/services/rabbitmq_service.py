@@ -1,13 +1,13 @@
 from base64 import urlsafe_b64encode
 from datetime import datetime
-from pika.adapters.blocking_connection import BlockingConnection
+from aio_pika.abc import AbstractRobustConnection
 from pydantic import EmailStr
 from src.core.schemas.message_reset_password import ResetPasswordMessage
 from src.managers.rabbitmq_manager import RabbitMQManager
 
 
 class RabbitMQService:
-    def __init__(self, connection: BlockingConnection):
+    def __init__(self, connection: AbstractRobustConnection):
         self.connection = connection
         self.rabbit_manager = RabbitMQManager(connection=connection)
 
