@@ -11,13 +11,14 @@ from src.main import api_router
 
 
 class BearerMiddleware(BaseHTTPMiddleware):
-    AUTH_EXCLUDE_PATH = [router.path for router in api_router.routes if "auth" in router.path]
+    AUTH_INCLUDE_PATH = [router.path for router in api_router.routes if "auth" in router.path]
+    AUTH_INCLUDE_PATH.extend(["/docs", "/openapi.json", "/healthcheck"])
 
     def __init__(self, app: FastAPI):
         super().__init__(app=app)
 
     async def dispatch(self, request, call_next):
-        if request.url.path in self.AUTH_EXCLUDE_PATH:
+        if request.url.path in self.AUTH_INCLUDE_PATH:
             return await call_next(request)
 
         authorization_header = request.headers.get("Authorization")
