@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import Depends, Form, APIRouter
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -7,10 +9,12 @@ from src.core.dependencies import (
     get_user_service,
     get_user_from_token,
     get_token_service,
+    get_rabbitmq_service,
 )
 from src.core.schemas.token import TokenInfo
 from src.core.schemas.user import UserCreate, UserRead
 from src.services.authorization_service import AuthService
+from src.services.rabbitmq_service import RabbitMQService
 from src.services.token_sevice import TokenService
 from src.services.user_service import UserService
 
@@ -38,3 +42,8 @@ async def auth_refresh_jwt(
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
 ):
     return await token_service.refresh_token(current_user=current_user, credentials=credentials)
+
+
+@auth_router.post("/auth/reset-password")
+async def reset_password(email: str, rabbitmq_service: RabbitMQService = Depends(get_rabbitmq_service)) -> Any:
+    return await rabbitmq_service.create_message_to_rabbitmq(queue="reset-password-stream", email=email)
