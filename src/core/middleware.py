@@ -12,6 +12,7 @@ from src.main import api_router
 
 class BearerMiddleware(BaseHTTPMiddleware):
     AUTH_EXCLUDE_PATH = [router.path for router in api_router.routes if "auth" in router.path]
+    AUTH_EXCLUDE_PATH.extend(["/docs", "/openapi.json", "/healthcheck"])
 
     def __init__(self, app: FastAPI):
         super().__init__(app=app)
