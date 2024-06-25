@@ -2,7 +2,7 @@ from base64 import urlsafe_b64encode
 from datetime import datetime
 from pika.adapters.blocking_connection import BlockingConnection
 from pydantic import EmailStr
-from src.core.schemas.massage_reset_password import ResetPasswordMessage
+from src.core.schemas.message_reset_password import ResetPasswordMessage
 from src.managers.rabbitmq_manager import RabbitMQManager
 
 
