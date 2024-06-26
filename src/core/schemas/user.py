@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
-
-from pydantic import BaseModel
+from pydantic_extra_types.phone_numbers import PhoneNumber
+from pydantic import BaseModel, EmailStr
 
 from src.core.database.enums.role import Role
 
@@ -11,8 +11,8 @@ class UserBase(BaseModel):
     name: str
     surname: str
     username: str
-    phone_number: str
-    email: str
+    phone_number: PhoneNumber
+    email: EmailStr
     role: Role = Role.USER
     image_s3_path: Optional[str] = None
 
