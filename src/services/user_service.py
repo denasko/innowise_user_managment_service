@@ -1,9 +1,11 @@
 from typing import Optional, Sequence
 from uuid import UUID
 
+from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database.enums.role import Role
+from src.core.database.enums.sorting import OrderBy, SortBy
 from src.core.database.models.user import User as UserModel
 from src.core.exeption_handlers import (
     PermissionException,
@@ -12,9 +14,9 @@ from src.core.exeption_handlers import (
 from src.core.schemas.user import UserCreate, UserUpdate
 from src.managers.user_manager import UserManager
 from src.services.authorization_service import AuthService
+from src.services.s3_service import S3BucketService
 from src.services.token_sevice import TokenService
 from src.utils.password import hash_password
-from src.core.database.enums.sorting import OrderBy, SortBy
 
 
 class UserService:
@@ -22,10 +24,18 @@ class UserService:
         self.auth_service = AuthService(session=session)
         self.repository = UserManager(session=session)
         self.token_service = TokenService(session=session)
+        self.s3_service = S3BucketService()
 
-    async def create_new_user(self, new_user: UserCreate) -> UserModel:
+    async def create_new_user(self, new_user: UserCreate, user_photo: UploadFile) -> UserModel:
+        if user_photo:
+            image_s3_path: str = await self.s3_service.upload_user_photo(
+                user_photo=user_photo, username=new_user.username
+            )
+
+            if image_s3_path:
+                new_user.image_s3_path = image_s3_path
+
         new_user.password = hash_password(new_user.password)
-
         return await self.repository.create_user(new_user=new_user)
 
     async def delete_current_user(self, current_user: UserModel) -> dict:
