@@ -37,11 +37,22 @@ class RabbitMQSettings(ConfiguredSettings):
     rabbitmq_password: str
 
 
+class S3BucketSettings(ConfiguredSettings):
+    s3_host: str
+    s3_port: int
+    s3_endpoint: str
+    s3_bucket_name: str
+    s3_region: str
+    aws_access_key_id: str
+    aws_secret_access_key: str
+
+
 class Settings(ConfiguredSettings):
     db: DatabaseSettings = DatabaseSettings()
     redis: RedisSettings = RedisSettings()
     jwt: AuthJWT = AuthJWT()
     rabbitmq: RabbitMQSettings = RabbitMQSettings()
+    s3_bucket: S3BucketSettings = S3BucketSettings()
 
 
 settings = Settings()
