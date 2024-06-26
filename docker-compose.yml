@@ -59,3 +59,15 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - ./rabbitmq_data:/var/lib/rabbitmq
+
+
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - DEBUG=${DEBUG:-0}
+      - SERVICES=s3
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
