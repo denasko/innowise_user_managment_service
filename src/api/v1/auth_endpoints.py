@@ -18,10 +18,7 @@ from src.services.authorization_service import AuthService
 from src.services.rabbitmq_service import RabbitMQService
 from src.services.token_sevice import TokenService
 from src.services.user_service import UserService
-from src.utils.validate_create_user_schemas import (
-    CreateUser,
-    new_user_to_pydantic_schema,
-)
+from src.core.schemas.validate_create_user_shemas import CreateUser
 
 auth_router = APIRouter(prefix="/auth")
 
@@ -42,7 +39,7 @@ async def create_new_user(
     user_service: UserService = Depends(get_user_service),
 ):
     return await user_service.create_new_user(
-        new_user=new_user_to_pydantic_schema(new_user=new_user),
+        new_user=CreateUser.new_user_to_pydantic_schema(new_user=new_user),
         user_photo=user_photo,
     )
 
