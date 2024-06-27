@@ -11,7 +11,11 @@ class S3BucketManager:
         self.session = aioboto3.Session()
 
     def _get_s3_client(self) -> AioBaseClient:
-        """create and return new S3 client"""
+        """
+        Create new S3 client
+
+        Exceptions:
+        - S3BucketException: Occurs when a client creation error occurs"""
         try:
             client: AioBaseClient = self.session.client(
                 service_name="s3",
